@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Correlation Coefficient</title>
+  </head>
+  <body>
+    <label for="tickerInput1">Enter a ticker symbol:</label>
+    <input type="text" id="tickerInput1">
+    <label for="tickerInput2">Enter another ticker symbol:</label>
+    <input type="text" id="tickerInput2">
+    <button onclick="money()">Get data</button>
+
+    <p id="demo"></p>
+
+    <script>
+
+    function money(){
+        const ticker1 = document.getElementById('tickerInput1').value;
+        const ticker2 = document.getElementById('tickerInput2').value;
+        const url1 = `https://api.polygon.io/v2/aggs/ticker/${ticker1}/range/1/week/2023-01-01/2023-05-04?adjusted=true&sort=asc&limit=120&apiKey=pVPh744Osmr72Nf_vxaXKvZeZ6MXRyh8`;
+        const url2 = `https://api.polygon.io/v2/aggs/ticker/${ticker2}/range/1/week/2023-01-01/2023-05-04?adjusted=true&sort=asc&limit=120&apiKey=pVPh744Osmr72Nf_vxaXKvZeZ6MXRyh8`;
+
+        const s1 = [];
+        const s2 = [];
+
+        fetch(url1)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            for (let i = 0; i < data.results.length; i++){
+                const firstRecord = data.results[i];
+                const firstOpenPrice = firstRecord.o;
+                const firstClosePrice = firstRecord.c;
+                const change = ((firstClosePrice - firstOpenPrice) / firstOpenPrice) * 100;
+                console.log(change);
+                s1[i] = change; //append weekly changes to an array
+            }
+            console.log(s1);
+
+            fetch(url2)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    for (let i = 0; i < data.results.length; i++){
+                        const firstRecord = data.results[i];
+                        const firstOpenPrice = firstRecord.o;
+                        const firstClosePrice = firstRecord.c;
+                        const change = ((firstClosePrice - firstOpenPrice) / firstOpenPrice) * 100;
+                        console.log(change);
+                        s2[i] = change; //append weekly changes to an array
+                    }
+                    console.log(s2);
+                    coCoe(s1, s2);
+                })
+                .catch(error => console.error('An error happened:', error));
+        })
+        .catch(error => console.error('An error happened:', error));
+    }
+
+
+
+
+
+
+        function avgCalculator(list) {
+            let sum = 0;
+            for (let i = 0; i < list.length; i++) {
+                sum += list[i];
+            }
+            let avg = sum / list.length;
+            return avg;
+        }
+
+        function sdCalculator(list) {
+            let avg = avgCalculator(list);
+            let sum = 0;
+            for (let i = 0; i < list.length; i++) {
+                sum += (list[i] - avg) * (list[i] - avg);
+            }
+            let sd = Math.sqrt(sum / (list.length - 1));
+            return sd;
+        }
+
+        function covariance(list1, list2) {
+            let sum = 0;
+            let avg1 = avgCalculator(list1);
+            let avg2 = avgCalculator(list2);
+            for (let i = 0; i < list1.length; i++) {
+                sum += (list1[i] - avg1) * (list2[i] - avg2) / (list1.length - 1);
+            }
+            return sum;
+        }
+
+        function coCoe(list1, list2) {
+            let sd1 = sdCalculator(list1);
+            let sd2 = sdCalculator(list2);
+            let cv = covariance(list1, list2);
+            let coco = cv / (sd1 * sd2);
+
+            document.getElementById("demo").innerHTML = coco;
+        }
+
+    </script>
+  </body>
+</html>
